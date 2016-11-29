@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CommGraph2.iml" filepath="$PROJECT_DIR$/.idea/modules/CommGraph2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CommGraph2_main.iml" filepath="$PROJECT_DIR$/.idea/modules/CommGraph2_main.iml" group="CommGraph2" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CommGraph2_test.iml" filepath="$PROJECT_DIR$/.idea/modules/CommGraph2_test.iml" group="CommGraph2" />
+    </modules>
+  </component>
+</project>
