@@ -8,7 +8,7 @@ object visits {
 
   def main(args: Array[String]) {
 
-    val graph = List((1, 2), (2, 3), (2, 4), (3, 4), (1, 5), (5, 6), (5, 7), (6, 7), (3, 8), (8, 9), (9, 10))
+    val graph = List((1, 2), (2, 3), (2, 4), (3, 4), (1, 5), (5, 6), (5, 7), (6, 7), (3, 8), (8, 9), (9, 10), (89, 234))
 
     // graph.foreach(println)
 
@@ -16,6 +16,8 @@ object visits {
 
     dfs(graph, starting_node, ListBuffer()).foreach(println)
     bfs(graph, ListBuffer(starting_node))
+
+    val array = Array[Int](1, 21231231, 31221312, 4)
 
   }
 
