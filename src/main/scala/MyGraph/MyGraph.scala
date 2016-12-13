@@ -19,17 +19,18 @@ class MyGraph(sc: SparkContext) {
     * @param file path of the input file
     * @return RDD with edges
     */
-  def readEdges(file: String): RDD[Edge[String]] = {
+  def readEdges(file: String): RDD[Edge[Double]] = {
 
     val lines = Source.fromFile(file).getLines()
-    val results = new ListBuffer[Edge[String]]()
+    val results = new ListBuffer[Edge[Double]]()
 
-    (results /: lines) ((res: ListBuffer[Edge[String]], line: String) => {
+    (results /: lines) ((res: ListBuffer[Edge[Double]], line: String) => {
       val spline = line.split("\t")
-      res += new Edge(spline.apply(0).toInt, spline.apply(2).toInt, spline.apply(1))
+      res += new Edge(spline.apply(0).toInt, spline.apply(2).toInt, 0.0d)
     })
 
-    sc.parallelize(results)
+    val ret: RDD[Edge[Double]] = sc.parallelize(results)
+    ret
   }
 
   def getEdgeTuples(file: String): RDD[(VertexId, VertexId)] = {

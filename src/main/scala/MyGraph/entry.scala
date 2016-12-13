@@ -1,6 +1,7 @@
 package MyGraph
 
-import org.apache.spark.graphx.{EdgeTriplet, Graph}
+import org.apache.spark.graphx.{Edge, EdgeTriplet, Graph, VertexId}
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.StdIn
@@ -21,17 +22,14 @@ object entry {
     val file = "Data/facebook-cleaned/total.csv"
     val graph = Graph.fromEdgeTuples(mygraph.getEdgeTuples(file), 0)
 
-    val edgeRDD = graph.edges
-    //    println(s"edgeRDD: $edgeRDD\t${edgeRDD.first()}")
-    val vertexRDD = graph.degrees.join(graph.vertices).map({ case (id: Long, (deg: Int, att: Int)) => (id, deg) })
-
+    val edgeRDD: RDD[Edge[Double]] = mygraph.readEdges(file)
+    println(s"edgeRDD: $edgeRDD\t${edgeRDD.first()}")
+    val vertexRDD: RDD[(VertexId, Int)] = graph.degrees.join(graph.vertices).map({ case (id: Long, (deg: Int, att: Int)) => (id, deg) })
     println(s"vertexRDD: $vertexRDD\t${vertexRDD.first()}")
-    val defaultNode = (1, 0)
 
-    val finalGraph = Graph(vertexRDD, edgeRDD, defaultNode)
-
-    //    println(s"FG: edge: ${finalGraph.edges.count()}")
-    //    compute_modularity(finalGraph)
+    val finalGraph = Graph[Int, Double](vertexRDD, edgeRDD, 0)
+    println(s"FG: edge: ${finalGraph.edges.count()}")
+    compute_modularity(finalGraph)
 
     //    graph.mapVertices((v, a) => graph.degrees.lookup(v)).vertices.foreach(println)
 
@@ -48,7 +46,7 @@ object entry {
     StdIn.readLine()
   }
 
-  def compute_modularity(graph: Graph[Any, Int]): Double = {
+  def compute_modularity(graph: Graph[Int, Double]): Double = {
     println("////////////////////")
     val community: Set[Long] = Set(236l, 186l, 88l, 213l)
 
