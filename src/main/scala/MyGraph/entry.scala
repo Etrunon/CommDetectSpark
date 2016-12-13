@@ -1,6 +1,6 @@
 package MyGraph
 
-import org.apache.spark.graphx.{Edge, EdgeTriplet, Graph, VertexId}
+import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -15,12 +15,11 @@ object entry {
   def main(args: Array[String]): Unit = {
 
     val conf = new SparkConf().setAppName("MyGraph").setMaster("local[*]")
-
     val sc = new SparkContext(conf)
     val mygraph = new MyGraph(sc)
-
     val file = "Data/facebook-cleaned/total.csv"
     val graph = Graph.fromEdgeTuples(mygraph.getEdgeTuples(file), 0)
+    edge_number = graph.edges.count()
 
     val edgeRDD: RDD[Edge[Double]] = mygraph.readEdges(file)
     println(s"edgeRDD: $edgeRDD\t${edgeRDD.first()}")
@@ -31,17 +30,6 @@ object entry {
     println(s"FG: edge: ${finalGraph.edges.count()}")
     compute_modularity(finalGraph)
 
-    //    graph.mapVertices((v, a) => graph.degrees.lookup(v)).vertices.foreach(println)
-
-    //    graph.edges.foreach(println)
-
-    //    edge_number = graph.edges.count()
-
-    //    compute_modularity(graph)
-    //    val value: ArrayB
-    //    println(graph.degrees.lookup(213).head)
-    //    graph.degrees.foreach(println)
-
     println("Press any key to exit")
     StdIn.readLine()
   }
@@ -50,22 +38,41 @@ object entry {
     println("////////////////////")
     val community: Set[Long] = Set(236l, 186l, 88l, 213l)
 
-    graph.mapTriplets(e => modularity(community, e)).edges.foreach(e => {
-      if (e.attr != 0) println(e)
-    })
+    graph.mapTriplets(e => e.attr + triplet_modularity(community, e))
+
+    //    Recollect all commscore dispersed into the graph
+    //    todo do i need to fold them all?
+
+    //    println(graph.edges.reduce((a, b) => {Edge(-1, -1, a.attr + b.attr)}).attr)
+    //    normRDD.aggregate(0)((acc:Double, edge:Edge[Double]) => Double {acc + edge.attr})((val1:Double, val2:Double) => Double {val1 + val2})
+
+    //    val result = graph.edges.aggregate(0.0)(
+    //      (m, e) => {e.attr + m},
+    //      (m1, m2) => {m1 + m2})
+    //    )
 
     println("////////////////////")
     0.3
   }
 
-  def modularity(set: Set[Long], edge: EdgeTriplet[Any, Int]): Long = {
-    //    println(s"edgeTriplet: ${edge.toString}")
+  /**
+    * This function compute the modularity contribution of each node and put it into the edge attribute
+    *
+    * @param set  of tested community
+    * @param edge triplet
+    * @return
+    */
+  def triplet_modularity(set: Set[Long], edge: EdgeTriplet[Int, Double]): Double = {
+    //        println(s"edgeTriplet: ${edge.toString}")
 
-    //    if ((set.contains(edge.srcId) && !set.contains(edge.dstId)) || (!set.contains(edge.srcId) && set.contains(edge.dstId))) {
-    //      (1 * ( graph.degrees.lookup(edge.srcId).head * graph.degrees.lookup(edge.dstId).head)) / (2 * edge_number)
-    //    } else {
-    //      0
-    //    }
-    1L
+    if ((set.contains(edge.srcId) && !set.contains(edge.dstId)) || (!set.contains(edge.srcId) && set.contains(edge.dstId))) {
+      //          println(s" 1 * (${edge.srcAttr} * ${edge.dstAttr}) / (2 * $edge_number)")
+      //          val tmp_debug: Double = 1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
+      //          println(tmp_debug)
+      //          tmp_debug
+      1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
+    } else {
+      0.0
+    }
   }
 }
