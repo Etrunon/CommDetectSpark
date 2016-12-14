@@ -35,24 +35,16 @@ object entry {
 
   def compute_modularity(graph: Graph[Int, Double]): Double = {
     println("////////////////////")
-    val community: Set[Long] = Set(236l, 186l, 88l, 213l)
+    val community: Set[Long] = Set(236l, 186l, 88l, 213l, 315l, 3465l, 456l, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-    graph.mapTriplets(e => e.attr + triplet_modularity(community, e))
+    val comGraph = graph.mapTriplets(e => triplet_modularity(community, e)).edges.filter(e => e.attr != 0.0)
 
-    graph.edges.foreach(e => {
-      if (e.attr != 0.0) println
-    })
-    //    Recollect all commscore dispersed into the graph
-    //    todo do i need to fold them all?
 
-    //    println(graph.edges.reduce((a, b) => {Edge(-1, -1, a.attr + b.attr)}).attr)
-    //    normRDD.aggregate(0)((acc:Double, edge:Edge[Double]) => Double {acc + edge.attr})((val1:Double, val2:Double) => Double {val1 + val2})
+    val comScore: Double = 1 / ((4 * edge_number) * comGraph.aggregate(0.0)((acc: Double, e: Edge[Double]) => acc + e.attr, (d1: Double, d2: Double) => d1 + d2))
 
-    //    val result = graph.edges.aggregate(0.0)(
-    //      (m, e) => {e.attr + m},
-    //      (m1, m2) => {m1 + m2})
-    //    )
+    //    (1 / (4 * edge_numb) * com_modularity)
 
+    println(s"ComScore: $comScore, countInGraph: ${comGraph.count()}")
     println("////////////////////")
     0.3
   }
@@ -65,19 +57,15 @@ object entry {
     * @return
     */
   def triplet_modularity(set: Set[Long], edge: EdgeTriplet[Int, Double]): Double = {
-    println(s"edgeTriplet: ${edge.toString}")
+    //    println(s"edgeTriplet: ${edge.toString}")
 
     if ((set.contains(edge.srcId) && !set.contains(edge.dstId)) || (!set.contains(edge.srcId) && set.contains(edge.dstId))) {
-      println(s" 1 * (${edge.srcAttr} * ${edge.dstAttr}) / (2 * $edge_number)")
       val tmp_debug: Double = 1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
-      println(tmp_debug)
+      //      println(s" 1 * (${edge.srcAttr} * ${edge.dstAttr}) / (2 * $edge_number) ==> $tmp_debug")
       tmp_debug
       //          1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
     } else {
-      10.0
+      0.0
     }
-
-    //    Fake return
-    //    0.0
   }
 }
