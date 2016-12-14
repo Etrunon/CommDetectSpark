@@ -4,8 +4,6 @@ import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.io.StdIn
-
 /**
   * Created by etrunon on 01/12/16.
   */
@@ -22,16 +20,17 @@ object entry {
     edge_number = graph.edges.count()
 
     val edgeRDD: RDD[Edge[Double]] = mygraph.readEdges(file)
-    println(s"edgeRDD: $edgeRDD\t${edgeRDD.first()}")
+    //    println(s"edgeRDD: $edgeRDD\t${edgeRDD.first()}")
     val vertexRDD: RDD[(VertexId, Int)] = graph.degrees.join(graph.vertices).map({ case (id: Long, (deg: Int, att: Int)) => (id, deg) })
-    println(s"vertexRDD: $vertexRDD\t${vertexRDD.first()}")
+    //    println(s"vertexRDD: $vertexRDD\t${vertexRDD.first()}")
 
     val finalGraph = Graph[Int, Double](vertexRDD, edgeRDD, 0)
-    println(s"FG: edge: ${finalGraph.edges.count()}")
+    //    println(s"edge: ${finalGraph.edges.first()}, vertex: ${finalGraph.vertices.first()}")
+    //    println(s"FG: edge: ${finalGraph.edges.count()}")
     compute_modularity(finalGraph)
 
-    println("Press any key to exit")
-    StdIn.readLine()
+    //    println("Press any key to exit")
+    //    StdIn.readLine()
   }
 
   def compute_modularity(graph: Graph[Int, Double]): Double = {
@@ -40,6 +39,9 @@ object entry {
 
     graph.mapTriplets(e => e.attr + triplet_modularity(community, e))
 
+    graph.edges.foreach(e => {
+      if (e.attr != 0.0) println
+    })
     //    Recollect all commscore dispersed into the graph
     //    todo do i need to fold them all?
 
@@ -63,16 +65,19 @@ object entry {
     * @return
     */
   def triplet_modularity(set: Set[Long], edge: EdgeTriplet[Int, Double]): Double = {
-    //        println(s"edgeTriplet: ${edge.toString}")
+    println(s"edgeTriplet: ${edge.toString}")
 
     if ((set.contains(edge.srcId) && !set.contains(edge.dstId)) || (!set.contains(edge.srcId) && set.contains(edge.dstId))) {
-      //          println(s" 1 * (${edge.srcAttr} * ${edge.dstAttr}) / (2 * $edge_number)")
-      //          val tmp_debug: Double = 1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
-      //          println(tmp_debug)
-      //          tmp_debug
-      1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
+      println(s" 1 * (${edge.srcAttr} * ${edge.dstAttr}) / (2 * $edge_number)")
+      val tmp_debug: Double = 1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
+      println(tmp_debug)
+      tmp_debug
+      //          1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
     } else {
-      0.0
+      10.0
     }
+
+    //    Fake return
+    //    0.0
   }
 }
