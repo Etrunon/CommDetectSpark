@@ -25,28 +25,59 @@ object entry {
     //    println(s"vertexRDD: $vertexRDD\t${vertexRDD.first()}")
 
     val finalGraph = Graph[Int, Double](vertexRDD, edgeRDD, 0)
+
+    expand_modularity_from(finalGraph, Set(0))
     //    println(s"edge: ${finalGraph.edges.first()}, vertex: ${finalGraph.vertices.first()}")
     //    println(s"FG: edge: ${finalGraph.edges.count()}")
-    compute_modularity(finalGraph)
 
     //    println("Press any key to exit")
     //    StdIn.readLine()
   }
 
-  def compute_modularity(graph: Graph[Int, Double]): Double = {
-    println("////////////////////")
-    val community: Set[Long] = Set(236l, 186l, 88l, 213l, 315l, 3465l, 456l, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+  /**
+    * Compute the modularity on the starting set and try to expand it into the best with greedy approach
+    *
+    * @param graph     on which operate
+    * @param nodeStart set of inizial community
+    * @return
+    */
+  def expand_modularity_from(graph: Graph[Int, Double], nodeStart: Set[Long]): (Double, Set[Long]) = {
+    println("/////" * 6)
+    val baseMod = compute_modularity(graph, nodeStart)
+    val neighbours = graph.triplets.collect({ case t if nodeStart.contains(t.srcId) && !nodeStart.contains(t.dstId) => t.dstId })
 
+    var resScore = baseMod
+    var resSet = nodeStart
+    for (nei <- neighbours) {
+      val newSet = nodeStart + nei
+      println(s"NewSet: $newSet}")
+      val newScore = compute_modularity(graph, newSet)
+      if (newScore >= resScore) {
+        resScore = newScore
+        resSet = newSet
+      }
+    }
+
+    println(s"BaseScore: $baseMod, baseSet: $nodeStart.\t\t finalScore: $resScore, finalSet: $resSet")
+    println("/////" * 6)
+    (-1.0, Set(-1l))
+  }
+
+  /**
+    * Compute the modularity score of the given to-be tested nodes on the provided graph.
+    *
+    * @param graph     graph on which test the community
+    * @param community set of nodes inside the comm
+    * @return
+    */
+  def compute_modularity(graph: Graph[Int, Double], community: Set[Long]): Double = {
+    println("#####" * 6)
     val comGraph = graph.mapTriplets(e => triplet_modularity(community, e)).edges.filter(e => e.attr != 0.0)
-
-
     val comScore: Double = 1 / ((4 * edge_number) * comGraph.aggregate(0.0)((acc: Double, e: Edge[Double]) => acc + e.attr, (d1: Double, d2: Double) => d1 + d2))
 
-    //    (1 / (4 * edge_numb) * com_modularity)
-
     println(s"ComScore: $comScore, countInGraph: ${comGraph.count()}")
-    println("////////////////////")
-    0.3
+    println("#####" * 6)
+    comScore
   }
 
   /**
