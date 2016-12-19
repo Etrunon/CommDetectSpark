@@ -42,23 +42,16 @@ object entry {
     * @return
     */
   def expand_modularity_from(graph: Graph[Int, Double], nodeStart: Set[Long]): (Double, Set[Long]) = {
-    println("/////" * 6)
+    println("//Open///" + "//////" * 6)
     val baseMod = compute_modularity(graph, nodeStart)
-    val neighbours = graph.triplets.collect({ case t if nodeStart.contains(t.srcId) && !nodeStart.contains(t.dstId) => t.dstId })
+    val neighbours = graph.triplets.collect({ case t if nodeStart.contains(t.srcId) && !nodeStart.contains(t.dstId) => t.dstId }).foreach(println)
 
-    var resScore = baseMod
-    var resSet = nodeStart
-    for (nei <- neighbours) {
-      val newSet = nodeStart + nei
-      println(s"NewSet: $newSet}")
-      val newScore = compute_modularity(graph, newSet)
-      if (newScore >= resScore) {
-        resScore = newScore
-        resSet = newSet
-      }
-    }
+    //    var resScore = baseMod
+    //    var resSet = nodeStart
 
-    println(s"BaseScore: $baseMod, baseSet: $nodeStart.\t\t finalScore: $resScore, finalSet: $resSet")
+    //    val xdsd = graph.triplets.filter(e => nodeStart.contains(e.srcId)).map(e => compute_modularity(graph, nodeStart+e.dstId)).collect().foreach(println)
+
+    //    println(s"BaseScore: $baseMod, baseSet: $nodeStart.\t\t finalScore: $resScore, finalSet: $resSet")
     println("/////" * 6)
     (-1.0, Set(-1l))
   }
@@ -71,7 +64,7 @@ object entry {
     * @return
     */
   def compute_modularity(graph: Graph[Int, Double], community: Set[Long]): Double = {
-    println("#####" * 6)
+    println("##Open###" + "######" * 6)
     val comGraph = graph.mapTriplets(e => triplet_modularity(community, e)).edges.filter(e => e.attr != 0.0)
     val comScore: Double = 1 / ((4 * edge_number) * comGraph.aggregate(0.0)((acc: Double, e: Edge[Double]) => acc + e.attr, (d1: Double, d2: Double) => d1 + d2))
 
