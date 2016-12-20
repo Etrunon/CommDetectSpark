@@ -10,7 +10,7 @@ import scala.io.Source
 /**
   * Created by etrunon on 01/12/16.
   */
-class MyGraph(sc: SparkContext) {
+class MyGraphUtility(sc: SparkContext) {
 
   /** *
     * This method read the edges saved in the csv file and returns the RDD with those edges.
@@ -19,17 +19,17 @@ class MyGraph(sc: SparkContext) {
     * @param file path of the input file
     * @return RDD with edges
     */
-  def readEdges(file: String): RDD[Edge[Double]] = {
+  def readEdges(file: String): RDD[Edge[Int]] = {
 
     val lines = Source.fromFile(file).getLines()
-    val results = new ListBuffer[Edge[Double]]()
+    val results = new ListBuffer[Edge[Int]]()
 
-    (results /: lines) ((res: ListBuffer[Edge[Double]], line: String) => {
+    (results /: lines) ((res: ListBuffer[Edge[Int]], line: String) => {
       val spline = line.split("\t")
-      res += new Edge(spline.apply(0).toInt, spline.apply(2).toInt, 0.0d)
+      res += new Edge(spline.apply(0).toInt, spline.apply(2).toInt, 0)
     })
 
-    val ret: RDD[Edge[Double]] = sc.parallelize(results)
+    val ret: RDD[Edge[Int]] = sc.parallelize(results)
     ret
   }
 
