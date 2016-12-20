@@ -40,6 +40,7 @@ object entry {
     // Test with pregel, work in progress
     //    finalGraph.pregel(Double.NegativeInfinity)((id: VertexId, data: (Int, Double, Int), newDist) => println(s"Id: $id, Data: $data"))
 
+    // Initial implementation with fixed community and fixed starting node
     // expand_modularity_from(finalGraph, Set(0)
 
     // println("Press any key to exit")
