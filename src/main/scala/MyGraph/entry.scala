@@ -18,7 +18,7 @@ object entry {
 
   def main(args: Array[String]): Unit = {
 
-    //    Spark Configuration
+    // Spark Configuration
     val conf = new SparkConf().setAppName("MyGraph").setMaster("local[*]")
     val sc = new SparkContext(conf)
 
@@ -26,10 +26,10 @@ object entry {
     val file = "Data/facebook-cleaned/total.csv"
 
     val loadedGraph = Graph.fromEdgeTuples(mygutil.getEdgeTuples(file), 0)
-    //    Save the total edge number for later use
+    // Save the total edge number for later use
     edge_number = loadedGraph.edges.count()
 
-    //    Create a cleaned version with some help data
+    // Create a cleaned version with some help data
     val edgeRDD: RDD[Edge[Int]] = mygutil.readEdges(file)
     val vertexRDD: RDD[(VertexId, (Int, Double, Int))] = loadedGraph.degrees.join(loadedGraph.vertices).map({ case (id: Long, (deg: Int, att: Int)) => (id, (deg, 0.0d, -1)) })
 
@@ -37,12 +37,13 @@ object entry {
 
     finalGraph.triplets.foreach(println)
 
-    finalGraph.pregel(Double.NegativeInfinity)((id: VertexId, data: (Int, Double, Int), newDist) => println(s"Id: $id, Data: $data"))
+    // Test with pregel, work in progress
+    //    finalGraph.pregel(Double.NegativeInfinity)((id: VertexId, data: (Int, Double, Int), newDist) => println(s"Id: $id, Data: $data"))
 
-    //    expand_modularity_from(finalGraph, Set(0)
+    // expand_modularity_from(finalGraph, Set(0)
 
-    //    println("Press any key to exit")
-    //    StdIn.readLine()
+    // println("Press any key to exit")
+    // StdIn.readLine()
   }
 
   /**
@@ -54,12 +55,12 @@ object entry {
     * @return
     */
   def expand_modularity_from(graph: Graph[Int, Double], nodeStart: Set[Long]): (Double, Set[Long]) = {
-    //    Output separator
+    // Output separator
     println("//Open///" + "//////" * 6)
-    val baseMod = compute_modularity(graph, nodeStart)
+    val initialModularityScore = compute_modularity(graph, nodeStart)
     val neighbours = graph.triplets.collect({ case t if nodeStart.contains(t.srcId) && !nodeStart.contains(t.dstId) => t.dstId }).foreach(println)
 
-    //    println(s"BaseScore: $baseMod, baseSet: $nodeStart.\t\t finalScore: $resScore, finalSet: $resSet")
+    // println(s"BaseScore: $baseMod, baseSet: $nodeStart.\t\t finalScore: $resScore, finalSet: $resSet")
     println("/////" * 6)
     // Fake return
     (-1.0, Set(-1l))
@@ -73,10 +74,11 @@ object entry {
     * @return
     */
   def compute_modularity(graph: Graph[Int, Double], community: Set[Long]): Double = {
-    //    Output separator
+    // Output separator
     println("##Open###" + "######" * 6)
-    //
+    //  Map on each edge its modularity apport and set it to edgeAttr
     val comGraph = graph.mapTriplets(e => triplet_modularity(community, e)).edges.filter(e => e.attr != 0.0)
+    // Aggregate and sum up all edges weight, alias modularity. Then do 1 / ( (4times edges) * (sum of nodes modularities) )
     val comScore: Double = 1 / ((4 * edge_number) * comGraph.aggregate(0.0)((acc: Double, e: Edge[Double]) => acc + e.attr, (d1: Double, d2: Double) => d1 + d2))
 
     println(s"ComScore: $comScore, countInGraph: ${comGraph.count()}")
@@ -92,13 +94,10 @@ object entry {
     * @return
     */
   def triplet_modularity(set: Set[Long], edge: EdgeTriplet[Int, Double]): Double = {
-    //    println(s"edgeTriplet: ${edge.toString}")
 
+    // Compute the modularity apport of each edge to the total
     if ((set.contains(edge.srcId) && !set.contains(edge.dstId)) || (!set.contains(edge.srcId) && set.contains(edge.dstId))) {
-      val tmp_debug: Double = 1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
-      //      println(s" 1 * (${edge.srcAttr} * ${edge.dstAttr}) / (2 * $edge_number) ==> $tmp_debug")
-      tmp_debug
-      //          1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
+      1.0 * (edge.srcAttr * edge.dstAttr) / (2.0 * edge_number)
     } else {
       0.0
     }
